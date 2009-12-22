@@ -1,8 +1,7 @@
-
-var sys = require('sys');
-var http = require('http');
-var assert = require('assert');
 var journey = require('./journey');
+var sys = require('sys'),
+   http = require('http'),
+ assert = require('assert');
 
 var mock = {
     mockRequest: function (method, path, headers) {

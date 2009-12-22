@@ -1,6 +1,6 @@
 var sys = require("sys"),
-   http = require("http"),
-  posix = require("posix");
+    http = require("http"),
+    posix = require("posix");
 
 var proto = posix.cat('./proto.js').wait();
 process.compile(proto, "proto");
