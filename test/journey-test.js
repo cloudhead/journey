@@ -14,13 +14,7 @@ var mock = {
             listeners: [],
             method: method,
             headers: headers || { accept: "application/json", "Content-Type":'application/json' },
-            uri: {
-                full: uri.source,
-                path: uri.path,
-                params: uri.params,
-                queryString: uri.query,
-                fragment: ""
-            },
+            url: uri,
             setBodyEncoding: function (e) { this.bodyEncoding = e },
             addListener: function (event, callback) {
                 this.listeners.push({ event: event, callback: callback });
@@ -112,11 +106,11 @@ vows.tell('Journey', function (ctx) {
         res.send([200, {"Content-Type":"text/html"}, JSON.stringify(params)]);
     };
     get('/home/room?slippers=on&candles=lit').addVow(function (res) {
-       // var home = JSON.parse(res.body);
+        var home = JSON.parse(res.body);
 
-        //assert.equal(home.slippers, 'on');
-        //assert.equal(home.candles, 'lit');
-        //assert.equal(res.status, 200);
+        assert.equal(home.slippers, 'on');
+        assert.equal(home.candles, 'lit');
+        assert.equal(res.status, 200);
     }, "A request with uri parameters gets parsed into an object");
 
     // Here, we're sending a POST request; the input is parsed into an object, and passed
