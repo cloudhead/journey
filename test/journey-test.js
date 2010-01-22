@@ -88,83 +88,112 @@ journey.resources = {
 
 journey.ENV = 'test';
 
-vows.tell('Journey', function (ctx) {
+vows.tell('Journey', {
     //
     // SUCCESSFUL (2xx)
     //
+    "A valid HTTP request": {
+        setup: function () { return get('/', { accept: "application/json" }) },
 
-    get('/', { accept: "application/json" }).addVow(function (res) {
-        assert.equal(res.status, 200);
-        assert.equal(res.body, "honey I'm home!");
-        assert.match(res.body, /honey/);
-        assert.ok(res.finished);
-    }, "A valid HTTP request returns a 200");
+        "returns a 200": function (res) {
+            assert.equal(res.status, 200);
+            assert.equal(res.body, "honey I'm home!");
+            assert.match(res.body, /honey/);
+            assert.ok(res.finished);
+        }
+    },
 
-    // URI parameters get parsed into a javascript object, and are passed to the
-    // function handler like so:
-    journey.resources["home"].room = function (res, params) {
-        res.send([200, {"Content-Type":"text/html"}, JSON.stringify(params)]);
-    };
-    get('/home/room?slippers=on&candles=lit').addVow(function (res) {
-        var home = JSON.parse(res.body);
+    "A request with uri parameters": {
+        setup: function () {
+            // URI parameters get parsed into a javascript object, and are passed to the
+            // function handler like so:
+            journey.resources["home"].room = function (res, params) {
+                res.send([200, {"Content-Type":"text/html"}, JSON.stringify(params)]);
+            };
+            return get('/home/room?slippers=on&candles=lit');
+        },
 
-        assert.equal(home.slippers, 'on');
-        assert.equal(home.candles, 'lit');
-        assert.equal(res.status, 200);
-    }, "A request with uri parameters gets parsed into an object");
+        "gets parsed into an object": function (res) {
+            var home = JSON.parse(res.body);
 
-    // Here, we're sending a POST request; the input is parsed into an object, and passed
-    // to the function handler as a parameter.
-    // We expect Journey to respond with a 201 'Created', if the request was successful.
-    journey.resources["kitchen"].create = function (res, input) {
-        res.send(201, "cooking-time: " + (input['chicken'].length + input['fries'].length) + 'min');
-    };
-    post('/kitchen', null, {"chicken":"roasted", "fries":"golden"}).addVow(function (res) {
-        assert.equal(res.body, 'cooking-time: 13min');
-        assert.equal(res.status, 201);
-    }, "A POST request");
+            assert.equal(home.slippers, 'on');
+            assert.equal(home.candles, 'lit');
+            assert.equal(res.status, 200);
+        }
+    },
+
+    "A POST request": {
+        setup: function () {
+            // Here, we're sending a POST request; the input is parsed into an object, and passed
+            // to the function handler as a parameter.
+            // We expect Journey to respond with a 201 'Created', if the request was successful.
+            journey.resources["kitchen"].create = function (res, input) {
+                res.send(201, "cooking-time: " + (input['chicken'].length + input['fries'].length) + 'min');
+            };
+            return post('/kitchen', null, {"chicken":"roasted", "fries":"golden"})
+        },
+        "returns a 201": function (res) {
+            assert.equal(res.body, 'cooking-time: 13min');
+            assert.equal(res.status, 201);
+        }
+    },
 
     //
     // Representational State Transfer (REST)
     //
-    journey.resources["recipies"].index = function (params) {
-        
-    };
-    get('/recipies').addCallback(function (res) {
-        //var doc = JSON.parse(res.body);
+    //journey.resources["recipies"].index = function (params) {
+    //    
+    //};
+    //get('/recipies').addCallback(function (res) {
+    //    //var doc = JSON.parse(res.body);
 
-        //assert.ok(doc.includes("recipies"));
-        //assert.ok(doc.recipies.is(Array));
-    });
+    //    //assert.ok(doc.includes("recipies"));
+    //    //assert.ok(doc.recipies.is(Array));
+    //});
 
     //
     // CLIENT ERRORS (4xx)
     //
 
     // Journey being a JSON only server, asking for text/html returns 'Bad Request'
-    get('/', { accept: "text/html" }).addVow(function (res) {
-        assert.equal(res.status, 400);
-    }, "A request for text/html returns a 400");
-
+    "A request for text/html": {
+        setup: function () {
+            return get('/', { accept: "text/html" });
+        },
+        "returns a 400": function (res) { assert.equal(res.status, 400) }
+    },
     // This request won't match any pattern, because of the '@', 
     // it's therefore considered invalid
-    get('/hello/@').addVow(function (res) {
-        assert.equal(res.status, 400);
-    }, "A request for an invalid pattern returns a 400");
-
+    "A request for text/html": {
+        setup: function () {
+            return get('/hello/@');
+        },
+        "returns a 400": function (res) {
+            assert.equal(res.status, 400);
+        }
+    },
     // Trying to access an unknown resource will result in a 404 'Not Found',
     // as long as the uri format is valid
-    get('/unknown').addVow(function (res) {
-        assert.equal(res.status, 404);
-    }, "A request for an unknown resource returns a 404");
-
+    "A request for an unknown resource": {
+        setup: function () {
+            return get('/unknown');    
+        },
+        "returns a 404": function (res) {
+            assert.equal(res.status, 404);
+        }
+    },
     // Here, we're trying to use the DELETE method on /
     // Of course, we haven't allowed this, so Journey responds with a
     // 405 'Method not Allowed', and returns the allowed methods
-    del('/').addVow(function (res) {
-        assert.equal(res.status, 405);
-        assert.equal(res.headers.allow, 'GET');
-    }, "A request with an unsupported method returns a 405");
+    "A request with an unsupported method": {
+        setup: function () {
+            return del('/');    
+        },
+        "returns a 405": function (res) {
+            assert.equal(res.status, 405);
+            assert.equal(res.headers.allow, 'GET');
+        }
+    },
 
     //
     // SERVER ERRORS (5xx)
@@ -172,10 +201,14 @@ vows.tell('Journey', function (ctx) {
 
     // The code in `picnic.fail` throws an exception, so we return a
     // 500 'Internal Server Error'
-    get('/picnic/fail').addVow(function (res) {
-        assert.equal(res.status, 500);
-    }, "A request to a controller with an error in it returns a 500");
-
+    "A request to a controller with an error in it": {
+        setup: function () {
+            return get('/picnic/fail');    
+        },
+        "returns a 500": function (res) {
+            assert.equal(res.status, 500);
+        }
+    }
 });
 
 journey.router.draw(routes);
