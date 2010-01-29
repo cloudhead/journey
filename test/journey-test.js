@@ -89,7 +89,7 @@ journey.resources = {
     "recipies": {}
 };
 
-journey.ENV = 'test';
+journey.env = 'test';
 
 vows.tell('Journey', {
     //
