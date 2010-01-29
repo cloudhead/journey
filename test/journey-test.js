@@ -43,7 +43,7 @@ var mock = {
 
     request: function (method, path, headers, body) {
         return journey.server.handler(this.mockRequest(method, path, headers),
-                                      this.mockResponse(), JSON.stringify(body));
+                                      this.mockResponse(), body);
     }
 }
 
