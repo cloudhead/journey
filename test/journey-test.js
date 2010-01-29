@@ -76,6 +76,9 @@ journey.resources = {
         index: function (res) {
             res.send([200, {"Content-Type":"text/html"}, "honey I'm home!"]);
         },
+        room: function (res, params) {
+            res.send([200, {"Content-Type":"text/html"}, JSON.stringify(params)]);
+        }
     },
     "picnic": {
         fail: function () {
@@ -107,34 +110,45 @@ vows.tell('Journey', {
         setup: function () {
             // URI parameters get parsed into a javascript object, and are passed to the
             // function handler like so:
-            journey.resources["home"].room = function (res, params) {
-                res.send([200, {"Content-Type":"text/html"}, JSON.stringify(params)]);
-            };
             return get('/home/room?slippers=on&candles=lit');
         },
 
         "gets parsed into an object": function (res) {
-            var home = JSON.parse(res.body);
-
+            try { var home = JSON.parse(res.body) }
+            catch (e) { var home = {} }
             assert.equal(home.slippers, 'on');
             assert.equal(home.candles, 'lit');
             assert.equal(res.status, 200);
         }
     },
 
+    // Here, we're sending a POST request; the input is parsed into an object, and passed
+    // to the function handler as a parameter.
+    // We expect Journey to respond with a 201 'Created', if the request was successful.
     "A POST request": {
-        setup: function () {
-            // Here, we're sending a POST request; the input is parsed into an object, and passed
-            // to the function handler as a parameter.
-            // We expect Journey to respond with a 201 'Created', if the request was successful.
-            journey.resources["kitchen"].create = function (res, input) {
-                res.send(201, "cooking-time: " + (input['chicken'].length + input['fries'].length) + 'min');
-            };
-            return post('/kitchen', null, {"chicken":"roasted", "fries":"golden"})
+        "with a JSON body": {
+            setup: function () {
+                journey.resources["kitchen"].create = function (res, input) {
+                    res.send(201, "cooking-time: " + (input['chicken'].length + input['fries'].length) + 'min');
+                };
+                return post('/kitchen', null, JSON.stringify({"chicken":"roasted", "fries":"golden"}));
+            },
+            "returns a 201": function (res) {
+                assert.equal(res.status, 201);
+                assert.equal(res.body, 'cooking-time: 13min');
+            }
         },
-        "returns a 201": function (res) {
-            assert.equal(res.body, 'cooking-time: 13min');
-            assert.equal(res.status, 201);
+        "with a query-string body": {
+            setup: function () {
+                journey.resources["kitchen"].create = function (res, input) {
+                    res.send(201, "cooking-time: " + (input['chicken'].length + input['fries'].length) + 'min');
+                };
+                return post('/kitchen', {accept: 'application/json'}, "chicken=roasted&fries=golden");
+            },
+            "returns a 201": function (res) {
+                assert.equal(res.status, 201);
+                assert.equal(res.body, 'cooking-time: 13min');
+            }
         }
     },
 
@@ -164,7 +178,7 @@ vows.tell('Journey', {
     },
     // This request won't match any pattern, because of the '@', 
     // it's therefore considered invalid
-    "A request for text/html": {
+    "An invalid request": {
         setup: function () {
             return get('/hello/@');
         },
