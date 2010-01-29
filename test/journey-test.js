@@ -59,7 +59,7 @@ var routes = function (map) {
     map.get('home/room').to(map.resources["home"].room);
 
     map.route('GET', /^(\w+)$/).
-        to(function (res, r) { return map.resources[r].index(res) });
+        to(function (res, r) { return map.resource(r).index(res) });
     map.route('GET', /^(\w+)\/([0-9]+)$/).
         to(function (res, r, k) { return map.resources[r].get(res, k) });
     map.route('PUT', /^(\w+)\/([0-9]+)$/, { payload: true }).
