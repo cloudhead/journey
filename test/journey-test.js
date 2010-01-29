@@ -82,7 +82,7 @@ journey.resources = {
             throw "fail!";
         }
     },
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        "kitchen": {},
+    "kitchen": {},
     "recipies": {}
 };
 
