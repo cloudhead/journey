@@ -55,7 +55,7 @@ var put  = function (p, h, b) { return mock.request('PUT',    p, h, b) }
 
 
 var routes = function (map) {
-    map.route('GET', 'picnic/fail').to(map.resources["picnic"].fail);
+    this.route('GET', 'picnic/fail').to(map.resources["picnic"].fail);
     map.get('home/room').to(map.resources["home"].room);
 
     map.route('GET', /^(\w+)$/).
