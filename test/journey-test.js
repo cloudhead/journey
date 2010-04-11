@@ -69,6 +69,9 @@ var routes = function (map) {
     map.route('DELETE', /^(\w+)\/([0-9]+)$/).
         to(function (res, r, k) { return map.resources[r].destroy(res, k) });
     map.route('GET', '/').to(function (res) { return map.resources["home"].index(res) });
+
+    map.put('home/assert', { assert: function (res, body) { return body.length === 9; } }).
+        to(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
 };
 
 journey.resources = {
