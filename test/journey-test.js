@@ -103,8 +103,11 @@ vows.tell('Journey', {
 
         "returns a 200": function (res) {
             assert.equal(res.status, 200);
+        },
+        "returns a body": function (res) {
             assert.equal(res.body, "honey I'm home!");
-            assert.match(res.body, /honey/);
+        },
+        "sets res.finished to true": function (res) {
             assert.ok(res.finished);
         }
     },
@@ -116,12 +119,14 @@ vows.tell('Journey', {
             return get('/home/room?slippers=on&candles=lit');
         },
 
+        "returns a 200": function (res) {
+            assert.equal(res.status, 200);
+        },
         "gets parsed into an object": function (res) {
             try { var home = JSON.parse(res.body) }
             catch (e) { var home = {} }
             assert.equal(home.slippers, 'on');
             assert.equal(home.candles, 'lit');
-            assert.equal(res.status, 200);
         }
     },
 
@@ -134,22 +139,31 @@ vows.tell('Journey', {
                 journey.resources["kitchen"].create = function (res, input) {
                     res.send(201, "cooking-time: " + (input['chicken'].length + input['fries'].length) + 'min');
                 };
-                return post('/kitchen', null, JSON.stringify({"chicken":"roasted", "fries":"golden"}));
+                return post('/kitchen', null, JSON.stringify(
+                    {"chicken":"roasted", "fries":"golden"}
+                ));
             },
             "returns a 201": function (res) {
                 assert.equal(res.status, 201);
+            },
+            "gets parsed into an object": function (res) {
                 assert.equal(res.body, 'cooking-time: 13min');
             }
         },
         "with a query-string body": {
             setup: function () {
                 journey.resources["kitchen"].create = function (res, input) {
-                    res.send(201, "cooking-time: " + (input['chicken'].length + input['fries'].length) + 'min');
+                    res.send(201, "cooking-time: "         +
+                                  (input['chicken'].length +
+                                  input['fries'].length)   + 'min');
                 };
-                return post('/kitchen', {accept: 'application/json'}, "chicken=roasted&fries=golden");
+                return post('/kitchen', {accept: 'application/json'},
+                                        "chicken=roasted&fries=golden");
             },
             "returns a 201": function (res) {
                 assert.equal(res.status, 201);
+            },
+            "gets parsed into an object": function (res) {
                 assert.equal(res.body, 'cooking-time: 13min');
             }
         }
@@ -208,6 +222,8 @@ vows.tell('Journey', {
         },
         "returns a 405": function (res) {
             assert.equal(res.status, 405);
+        },
+        "sets the 'allowed' header correctly": function (res) {
             assert.equal(res.headers.allow, 'GET');
         }
     },
