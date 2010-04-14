@@ -36,14 +36,15 @@ var mock = {
                 this.status = status;
                 this.headers = headers;
             },
-            sendBody: function (body) { this.body = body },
-            finish: function () { this.finished = true }
+            end: function (body) {
+                this.body = body;
+                this.finished = true;
+            }
         };
     },
 
     request: function (method, path, headers, body) {
-        return journey.server.handler(this.mockRequest(method, path, headers),
-                                      this.mockResponse(), body);
+        return journey.route(this.mockRequest(method, path, headers), body);
     }
 }
 
@@ -72,6 +73,44 @@ var routes = function (map) {
 
     map.put('home/assert', { assert: function (res, body) { return body.length === 9; } }).
         to(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
+
+    //map.resource('people', function (people) {
+    //    people.index(function () {}) // people.index
+    //    people.show(function () {}) // people.show
+    //    people.create(function () {})
+    //    people.update(function () {})
+    //    people.destroy(function () {})
+
+    //    people.resource('articles', function (articles) {
+    //        articles.index(function () {}) // people.index
+    //        articles.show(function () {}) // people.show
+    //        articles.create(function () {})
+    //        articles.update(function () {})
+    //        articles.destroy(function () {})
+    //    });
+
+    //    people.resource('friends', {
+    //        index: function () {}
+    //    });
+    //});
+    //map.resources({
+    //    people: {
+    //        index:function () {}, // people.index
+    //        show:function () {}, // people.show
+    //        create:function () {},
+    //        update:function () {},
+    //        destroy:function () {},
+
+    //        articles: {
+    //            index:function () {}, // people.index
+    //            show:function () {}, // people.show
+    //            create:function () {},
+    //            update:function () {},
+    //            destroy:function () {}
+    //        }
+    //    }
+    //});
+
 };
 
 journey.resources = {
@@ -80,6 +119,8 @@ journey.resources = {
             res.send([200, {"Content-Type":"text/html"}, "honey I'm home!"]);
         },
         room: function (res, params) {
+            assert.equal(params.candles, "lit");
+            assert.equal(params.slippers, "on");
             res.send([200, {"Content-Type":"text/html"}, JSON.stringify(params)]);
         }
     },
@@ -106,9 +147,6 @@ vows.tell('Journey', {
         },
         "returns a body": function (res) {
             assert.equal(res.body, "honey I'm home!");
-        },
-        "sets res.finished to true": function (res) {
-            assert.ok(res.finished);
         }
     },
 
