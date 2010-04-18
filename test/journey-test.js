@@ -26,23 +26,6 @@ var mock = {
             }
         };
     },
-    mockResponse: function () {
-        return {
-            body: null,
-            finished: false,
-            status: 200,
-            headers: [],
-            sendHeader: function (status, headers) {
-                this.status = status;
-                this.headers = headers;
-            },
-            end: function (body) {
-                this.body = body;
-                this.finished = true;
-            }
-        };
-    },
-
     request: function (method, path, headers, body) {
         return journey.route(this.mockRequest(method, path, headers), body);
     }
@@ -211,7 +194,7 @@ vows.tell('Journey', {
     // Representational State Transfer (REST)
     //
     //journey.resources["recipies"].index = function (params) {
-    //    
+    //
     //};
     //get('/recipies').addCallback(function (res) {
     //    //var doc = JSON.parse(res.body);
@@ -231,7 +214,7 @@ vows.tell('Journey', {
         },
         "returns a 400": function (res) { assert.equal(res.status, 400) }
     },
-    // This request won't match any pattern, because of the '@', 
+    // This request won't match any pattern, because of the '@',
     // it's therefore considered invalid
     "An invalid request": {
         setup: function () {
@@ -245,7 +228,7 @@ vows.tell('Journey', {
     // as long as the uri format is valid
     "A request for an unknown resource": {
         setup: function () {
-            return get('/unknown');    
+            return get('/unknown');
         },
         "returns a 404": function (res) {
             assert.equal(res.status, 404);
@@ -256,7 +239,7 @@ vows.tell('Journey', {
     // 405 'Method not Allowed', and returns the allowed methods
     "A request with an unsupported method": {
         setup: function () {
-            return del('/');    
+            return del('/');
         },
         "returns a 405": function (res) {
             assert.equal(res.status, 405);
@@ -274,7 +257,7 @@ vows.tell('Journey', {
     // 500 'Internal Server Error'
     "A request to a controller with an error in it": {
         setup: function () {
-            return get('/picnic/fail');    
+            return get('/picnic/fail');
         },
         "returns a 500": function (res) {
             assert.equal(res.status, 500);
@@ -296,6 +279,7 @@ vows.tell('Journey', {
         }
 
     }
+
 });
 
 journey.router.draw(routes);
