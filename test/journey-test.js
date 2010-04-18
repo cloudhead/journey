@@ -39,60 +39,46 @@ var put  = function (p, h, b) { return mock.request('PUT',    p, h, b) }
 
 
 var routes = function (map) {
-    this.route('GET', 'picnic/fail').to(map.resources["picnic"].fail);
-    map.get('home/room').to(map.resources["home"].room);
+    this.route('GET', 'picnic/fail').to(map.resource("picnic").fail);
+    map.get('/home/room').to(map.resource("home").room);
 
     map.route('GET', /^(\w+)$/).
         to(function (res, r) { return map.resource(r).index(res) });
     map.route('GET', /^(\w+)\/([0-9]+)$/).
-        to(function (res, r, k) { return map.resources[r].get(res, k) });
+        to(function (res, r, k) { return map.resource(r).get(res, k) });
     map.route('PUT', /^(\w+)\/([0-9]+)$/, { payload: true }).
-        to(function (res, r, k) { return map.resources[r].update(res, k) });
+        to(function (res, r, k) { return map.resource(r).update(res, k) });
     map.route('POST', /^(\w+)$/, { payload: true }).
-        to(function (res, r, doc) { return map.resources[r].create(res, doc) });
+        to(function (res, r, doc) { return map.resource(r).create(res, doc) });
     map.route('DELETE', /^(\w+)\/([0-9]+)$/).
-        to(function (res, r, k) { return map.resources[r].destroy(res, k) });
-    map.route('GET', '/').to(function (res) { return map.resources["home"].index(res) });
+        to(function (res, r, k) { return map.resource(r).destroy(res, k) });
+    map.route('GET', '/').to(function (res) { return map.resource("home").index(res) });
 
     map.put('home/assert', { assert: function (res, body) { return body.length === 9; } }).
         to(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
 
-    //map.resource('people', function (people) {
-    //    people.index(function () {}) // people.index
-    //    people.show(function () {}) // people.show
-    //    people.create(function () {})
-    //    people.update(function () {})
-    //    people.destroy(function () {})
+    map.resources({
+        people: {
+            index: function () {}, // people.index
+            show: function () {}, // people.show
+            create: function () {},
+            update: function () {},
+            destroy: function () {},
 
-    //    people.resource('articles', function (articles) {
-    //        articles.index(function () {}) // people.index
-    //        articles.show(function () {}) // people.show
-    //        articles.create(function () {})
-    //        articles.update(function () {})
-    //        articles.destroy(function () {})
-    //    });
-
-    //    people.resource('friends', {
-    //        index: function () {}
-    //    });
-    //});
-    //map.resources({
-    //    people: {
-    //        index:function () {}, // people.index
-    //        show:function () {}, // people.show
-    //        create:function () {},
-    //        update:function () {},
-    //        destroy:function () {},
-
-    //        articles: {
-    //            index:function () {}, // people.index
-    //            show:function () {}, // people.show
-    //            create:function () {},
-    //            update:function () {},
-    //            destroy:function () {}
-    //        }
-    //    }
-    //});
+            articles: {
+                index: function () {}, // people.index
+                show: function (res, person, article) {
+                    res.send(JSON.stringify({
+                        person: person || null,
+                        article: article || null
+                    }));
+                },
+                create: function () {},
+                update: function () {},
+                destroy: function () {}
+            }
+        }
+    });
 
 };
 
