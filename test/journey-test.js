@@ -268,6 +268,6 @@ vows.tell('Journey', {
 
 });
 
-journey.router.draw(routes);
+journey.draw(routes);
 
 
