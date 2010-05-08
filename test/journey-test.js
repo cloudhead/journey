@@ -109,7 +109,7 @@ vows.tell('Journey', {
     // SUCCESSFUL (2xx)
     //
     "A valid HTTP request": {
-        setup: function () { return get('/', { accept: "application/json" }) },
+        topic: function () { return get('/', { accept: "application/json" }) },
 
         "returns a 200": function (res) {
             assert.equal(res.status, 200);
@@ -120,7 +120,7 @@ vows.tell('Journey', {
     },
 
     "A request with uri parameters": {
-        setup: function () {
+        topic: function () {
             // URI parameters get parsed into a javascript object, and are passed to the
             // function handler like so:
             return get('/home/room?slippers=on&candles=lit');
@@ -142,7 +142,7 @@ vows.tell('Journey', {
     // We expect Journey to respond with a 201 'Created', if the request was successful.
     "A POST request": {
         "with a JSON body": {
-            setup: function () {
+            topic: function () {
                 journey.resources["kitchen"].create = function (res, input) {
                     res.send(201, "cooking-time: " + (input['chicken'].length + input['fries'].length) + 'min');
                 };
@@ -158,7 +158,7 @@ vows.tell('Journey', {
             }
         },
         "with a query-string body": {
-            setup: function () {
+            topic: function () {
                 journey.resources["kitchen"].create = function (res, input) {
                     res.send(201, "cooking-time: "         +
                                   (input['chicken'].length +
@@ -195,7 +195,7 @@ vows.tell('Journey', {
 
     // Journey being a JSON only server, asking for text/html returns 'Bad Request'
     "A request for text/html": {
-        setup: function () {
+        topic: function () {
             return get('/', { accept: "text/html" });
         },
         "returns a 400": function (res) { assert.equal(res.status, 400) }
@@ -203,7 +203,7 @@ vows.tell('Journey', {
     // This request won't match any pattern, because of the '@',
     // it's therefore considered invalid
     "An invalid request": {
-        setup: function () {
+        topic: function () {
             return get('/hello/@');
         },
         "returns a 400": function (res) {
@@ -213,7 +213,7 @@ vows.tell('Journey', {
     // Trying to access an unknown resource will result in a 404 'Not Found',
     // as long as the uri format is valid
     "A request for an unknown resource": {
-        setup: function () {
+        topic: function () {
             return get('/unknown');
         },
         "returns a 404": function (res) {
@@ -224,7 +224,7 @@ vows.tell('Journey', {
     // Of course, we haven't allowed this, so Journey responds with a
     // 405 'Method not Allowed', and returns the allowed methods
     "A request with an unsupported method": {
-        setup: function () {
+        topic: function () {
             return del('/');
         },
         "returns a 405": function (res) {
@@ -242,7 +242,7 @@ vows.tell('Journey', {
     // The code in `picnic.fail` throws an exception, so we return a
     // 500 'Internal Server Error'
     "A request to a controller with an error in it": {
-        setup: function () {
+        topic: function () {
             return get('/picnic/fail');
         },
         "returns a 500": function (res) {
@@ -251,7 +251,7 @@ vows.tell('Journey', {
     },
 
     "resources": {
-        setup: function () {
+        topic: function () {
             return get('/people/42/articles/76');
         },
 
