@@ -200,25 +200,11 @@ vows.tell('Journey', {
             assert.equal(res.status, 500);
         }
     },
-
-    "resources": {
-        topic: function () {
-            return get('/people/42/articles/76');
-        },
-
-        "returns a 200": function (res) {
-            assert.equal(res.status, 200);
-        },
-        "passes the article & person id": function (res) {
-            var obj = JSON.parse(res.body);
-            assert.equal(obj.person, 42);
-            assert.equal(obj.article, 76);
-        }
-
-    }
-
 });
 
+//
+// Initialize the routes
+//
 journey.draw(routes);
 
 
