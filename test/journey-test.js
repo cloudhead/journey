@@ -1,88 +1,21 @@
-var journey = require('../lib/journey'),
-       vows = require('../../vows/lib/vows');
-
 var sys = require('sys'),
    http = require('http'),
  assert = require('assert'),
+   path = require('path'),
     url = require('url');
 
-var mock = {
-    mockRequest: function (method, path, headers) {
-        var uri = url.parse(path || '/', true);
+require.paths.unshift(__dirname, path.join(__dirname, '..'));
 
-        return {
-            listeners: [],
-            method: method,
-            headers: headers || { accept: "application/json", "Content-Type":'application/json' },
-            url: uri,
-            setBodyEncoding: function (e) { this.bodyEncoding = e },
-            addListener: function (event, callback) {
-                this.listeners.push({ event: event, callback: callback });
-                if (event == 'body') {
-                    var body = this.body;
-                    this.body = '';
-                    callback(body);
-                } else { callback() }
-            }
-        };
-    },
-    request: function (method, path, headers, body) {
-        return journey.route(this.mockRequest(method, path, headers), body);
-    }
-}
+var journey = require('lib/journey'),
+       mock = require('mock-request'),
+       vows = require('../../vows/lib/vows');
 
-// Convenience functions to send mock requests
-var get  = function (p, h)    { return mock.request('GET',    p, h) }
-var del  = function (p, h)    { return mock.request('DELETE', p, h) }
-var post = function (p, h, b) { return mock.request('POST',   p, h, b) }
-var put  = function (p, h, b) { return mock.request('PUT',    p, h, b) }
+var get = mock.get,
+    del = mock.del,
+   post = mock.post,
+    put = mock.put;
 
-
-var routes = function (map) {
-    this.route('GET', 'picnic/fail').bind(map.resource("picnic").fail);
-    map.get('/home/room').bind(map.resource("home").room);
-
-    map.route('GET', /^(\w+)$/).
-        bind(function (res, r) { return map.resource(r).index(res) });
-    map.route('GET', /^(\w+)\/([0-9]+)$/).
-        bind(function (res, r, k) { return map.resource(r).get(res, k) });
-    map.route('PUT', /^(\w+)\/([0-9]+)$/, { payload: true }).
-        bind(function (res, r, k) { return map.resource(r).update(res, k) });
-    map.route('POST', /^(\w+)$/, { payload: true }).
-        bind(function (res, r, doc) { return map.resource(r).create(res, doc) });
-    map.route('DELETE', /^(\w+)\/([0-9]+)$/).
-        bind(function (res, r, k) { return map.resource(r).destroy(res, k) });
-    map.route('GET', '/').bind(function (res) { return map.resource("home").index(res) });
-
-    map.put('home/assert', { assert: function (res, body) { return body.length === 9; } }).
-        bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
-
-    map.resources({
-        people: {
-            index: function () {}, // people.index
-            show: function () {}, // people.show
-            create: function () {},
-            update: function () {},
-            destroy: function () {},
-
-            articles: {
-                index: function () {}, // people.index
-                show: function (res, person, article) {
-                    res.send(JSON.stringify({
-                        person: person || null,
-                        article: article || null
-                    }));
-                },
-                create: function () {},
-                update: function () {},
-                destroy: function () {}
-            }
-        }
-    });
-
-};
-
-journey.resources = {
+var resources = {
     "home": {
         index: function (res) {
             res.send([200, {"Content-Type":"text/html"}, "honey I'm home!"]);
@@ -101,6 +34,28 @@ journey.resources = {
     "kitchen": {},
     "recipies": {}
 };
+
+var routes = function (map) {
+    this.route('GET', 'picnic/fail').bind(resources.picnic.fail);
+    map.get('/home/room').bind(resources.home.room);
+    map.get('/undefined').bind();
+
+    map.route('GET', /^(\w+)$/).
+        bind(function (res, r) { return resources[r].index(res) });
+    map.route('GET', /^(\w+)\/([0-9]+)$/).
+        bind(function (res, r, k) { return resources[r].get(res, k) });
+    map.route('PUT', /^(\w+)\/([0-9]+)$/, { payload: true }).
+        bind(function (res, r, k) { return resources[r].update(res, k) });
+    map.route('POST', /^(\w+)$/, { payload: true }).
+        bind(function (res, r, doc) { return resources[r].create(res, doc) });
+    map.route('DELETE', /^(\w+)\/([0-9]+)$/).
+        bind(function (res, r, k) { return resources[r].destroy(res, k) });
+    map.route('GET', '/').bind(function (res) { return resources.home.index(res) });
+
+    map.put('home/assert', { assert: function (res, body) { return body.length === 9; } }).
+        bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
+};
+
 
 journey.env = 'test';
 
@@ -143,7 +98,7 @@ vows.tell('Journey', {
     "A POST request": {
         "with a JSON body": {
             topic: function () {
-                journey.resources["kitchen"].create = function (res, input) {
+                resources["kitchen"].create = function (res, input) {
                     res.send(201, "cooking-time: " + (input['chicken'].length + input['fries'].length) + 'min');
                 };
                 return post('/kitchen', null, JSON.stringify(
@@ -159,7 +114,7 @@ vows.tell('Journey', {
         },
         "with a query-string body": {
             topic: function () {
-                journey.resources["kitchen"].create = function (res, input) {
+                resources["kitchen"].create = function (res, input) {
                     res.send(201, "cooking-time: "         +
                                   (input['chicken'].length +
                                   input['fries'].length)   + 'min');
@@ -175,19 +130,6 @@ vows.tell('Journey', {
             }
         }
     },
-
-    //
-    // Representational State Transfer (REST)
-    //
-    //journey.resources["recipies"].index = function (params) {
-    //
-    //};
-    //get('/recipies').addCallback(function (res) {
-    //    //var doc = JSON.parse(res.body);
-
-    //    //assert.ok(doc.includes("recipies"));
-    //    //assert.ok(doc.recipies.is(Array));
-    //});
 
     //
     // CLIENT ERRORS (4xx)
