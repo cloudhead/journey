@@ -135,31 +135,40 @@ vows.tell('Journey', {
     // CLIENT ERRORS (4xx)
     //
 
-    // Journey being a JSON only server, asking for text/html returns 'Bad Request'
+    // Journey being a JSON only server, asking for text/html returns 'Not Acceptable'
     "A request for text/html": {
         topic: function () {
             return get('/', { accept: "text/html" });
         },
-        "returns a 400": function (res) { assert.equal(res.status, 400) }
+        "returns a 406": function (res) { assert.equal(res.status, 406) }
     },
-    // This request won't match any pattern, because of the '@',
-    // it's therefore considered invalid
+    // This request doesn't have a matching route, it'll therefore return a 404.
+    "A request which doesn't match anything": {
+        topic: function () {
+            return del('/hello/world');
+        },
+        "returns a 404": function (res) {
+            assert.equal(res.status, 404);
+        }
+    },
+    // This request contains malformed JSON data, the server replies
+    // with a 400 'Bad Request'
     "An invalid request": {
         topic: function () {
-            return get('/hello/@');
+            return post('/malformed', null, "{bad: json}");
         },
         "returns a 400": function (res) {
             assert.equal(res.status, 400);
         }
     },
-    // Trying to access an unknown resource will result in a 404 'Not Found',
+    // Trying to access an undefined function will result in a 500,
     // as long as the uri format is valid
-    "A request for an unknown resource": {
+    "A route binded to an undefined function": {
         topic: function () {
-            return get('/unknown');
+            return get('/undefined');
         },
-        "returns a 404": function (res) {
-            assert.equal(res.status, 404);
+        "returns a 500": function (res) {
+            assert.equal(res.status, 500);
         }
     },
     // Here, we're trying to use the DELETE method on /
