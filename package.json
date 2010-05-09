@@ -1,0 +1,11 @@
+{
+  "name"          : "journey",
+  "description"   : "liberal JSON-only HTTP request routing for node",
+  "url"           : "http://cloudhead.io/journey",
+  "keywords"      : ["http", "router", "json"],
+  "author"        : "Alexis Sellier <self@cloudhead.net>",
+  "contributors"  : [],
+  "dependencies"  : [],
+  "lib"           : "lib",
+  "version"       : "0.1.0"
+}
