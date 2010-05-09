@@ -12,12 +12,12 @@ var journey = require('lib/journey'),
 var resources = {
     "home": {
         index: function (res) {
-            res.send([200, {"Content-Type":"text/html"}, "honey I'm home!"]);
+            res.send("honey I'm home!");
         },
         room: function (res, params) {
             assert.equal(params.candles, "lit");
             assert.equal(params.slippers, "on");
-            res.send([200, {"Content-Type":"text/html"}, JSON.stringify(params)]);
+            res.send({ body: params });
         }
     },
     "picnic": {
@@ -34,6 +34,7 @@ var resources = {
 //
 var router = new(journey.Router)(function (map) {
     this.route('GET', 'picnic/fail').bind(resources.picnic.fail);
+
     map.get('/home/room').bind(resources.home.room);
     map.get('/undefined').bind();
 
@@ -73,7 +74,7 @@ vows.tell('Journey', {
             assert.equal(res.status, 200);
         },
         "returns a body": function (res) {
-            assert.equal(res.body, "honey I'm home!");
+            assert.equal(res.body.journey, "honey I'm home!");
         }
     },
 
@@ -88,10 +89,8 @@ vows.tell('Journey', {
             assert.equal(res.status, 200);
         },
         "gets parsed into an object": function (res) {
-            try { var home = JSON.parse(res.body) }
-            catch (e) { var home = {} }
-            assert.equal(home.slippers, 'on');
-            assert.equal(home.candles, 'lit');
+            assert.equal(res.body.slippers, 'on');
+            assert.equal(res.body.candles, 'lit');
         }
     },
 
@@ -102,7 +101,7 @@ vows.tell('Journey', {
         "with a JSON body": {
             topic: function () {
                 resources["kitchen"].create = function (res, input) {
-                    res.send(201, "cooking-time: " + (input['chicken'].length + input['fries'].length) + 'min');
+                    res.send("cooking-time: " + (input['chicken'].length + input['fries'].length) + 'min');
                 };
                 return post('/kitchen', null, JSON.stringify(
                     {"chicken":"roasted", "fries":"golden"}
@@ -112,15 +111,15 @@ vows.tell('Journey', {
                 assert.equal(res.status, 201);
             },
             "gets parsed into an object": function (res) {
-                assert.equal(res.body, 'cooking-time: 13min');
+                assert.equal(res.body.journey, 'cooking-time: 13min');
             }
         },
         "with a query-string body": {
             topic: function () {
                 resources["kitchen"].create = function (res, input) {
-                    res.send(201, "cooking-time: "         +
-                                  (input['chicken'].length +
-                                  input['fries'].length)   + 'min');
+                    res.send("cooking-time: "         +
+                            (input['chicken'].length  +
+                             input['fries'].length)   + 'min');
                 };
                 return post('/kitchen', {accept: 'application/json'},
                                         "chicken=roasted&fries=golden");
@@ -129,7 +128,7 @@ vows.tell('Journey', {
                 assert.equal(res.status, 201);
             },
             "gets parsed into an object": function (res) {
-                assert.equal(res.body, 'cooking-time: 13min');
+                assert.equal(res.body.journey, 'cooking-time: 13min');
             }
         }
     },
