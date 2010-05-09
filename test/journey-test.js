@@ -17,7 +17,7 @@ var resources = {
         room: function (res, params) {
             assert.equal(params.candles, "lit");
             assert.equal(params.slippers, "on");
-            res.send({ body: params });
+            res.send(params);
         }
     },
     "picnic": {
