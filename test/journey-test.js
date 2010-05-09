@@ -41,6 +41,12 @@ var router = new(journey.Router)(function (map) {
     map.get('/undefined').bind();
 
     map.root.bind(function (res) { return resources.home.index(res) });
+
+    map.get('/').bind(function (res) { res.send(200) });
+    map.get('/twice').bind(function (res) { res.send("twice") });
+    map.get(/twice/).bind(function (res) { res.send(302) });
+
+    map.route(['GET', 'PUT'], /^(\w+)$/).
         bind(function (res, r) { return resources[r].index(res) });
     map.route('GET', /^(\w+)\/([0-9]+)$/).
         bind(function (res, r, k) { return resources[r].get(res, k) });
@@ -92,6 +98,19 @@ vows.tell('Journey', {
         "gets parsed into an object": function (res) {
             assert.equal(res.body.slippers, 'on');
             assert.equal(res.body.candles, 'lit');
+        }
+    },
+
+    "A request with two matching routes": {
+        topic: function () {
+            return get('/twice');
+        },
+
+        "returns a 200": function (res) {
+            assert.equal(res.status, 200);
+        },
+        "returns the first matching route": function (res) {
+            assert.equal(res.body.journey, 'twice');
         }
     },
 

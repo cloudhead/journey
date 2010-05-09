@@ -30,7 +30,12 @@ var mock = {
         var result = router.route(this.mockRequest(method, path, headers), body);
 
         result.addListener('success', function (res) {
-            if (res.body) { res.body = JSON.parse(res.body) }
+            try {
+                if (res.body) { res.body = JSON.parse(res.body) }
+            } catch (e) {
+                sys.puts(res.body)
+                sys.puts(e);
+            }
             promise.emit('success', res);
         });
         return promise;
