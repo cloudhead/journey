@@ -46,6 +46,7 @@ exports.mock = function (instance) {
     router = instance;
     return this;
 };
+exports.mockRequest = mock.mockRequest;
 
 // Convenience functions to send mock requests
 exports.get  = function (p, h)    { return mock.request('GET',    p, h) }

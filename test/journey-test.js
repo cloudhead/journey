@@ -2,6 +2,7 @@ var sys = require('sys'),
    http = require('http'),
  assert = require('assert'),
    path = require('path'),
+ events = require('events'),
     url = require('url');
 
 require.paths.unshift(__dirname, path.join(__dirname, '..'),
@@ -98,6 +99,24 @@ vows.tell('Journey', {
         "gets parsed into an object": function (res) {
             assert.equal(res.body.slippers, 'on');
             assert.equal(res.body.candles, 'lit');
+        }
+    },
+    "A request without uri parameters": {
+        topic: function () {
+            var promise = new(events.EventEmitter);
+            router.routes.unshift({
+                patterns: ['/noparams'],
+                method: 'GET', handler: function (res) {
+                    promise.emit('success', arguments);
+                }, success: undefined, constraints: {}
+            });
+            router.route(mock.mockRequest('GET', '/noparams', {}));
+            return promise;
+        },
+        "should pass an empty params object": function (args) {
+            var params = args[args.length - 1];
+            assert.isObject(params);
+            assert.equal(Object.keys(params).length, 0);
         }
     },
 
