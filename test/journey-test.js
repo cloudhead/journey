@@ -7,13 +7,7 @@ var sys = require('sys'),
 require.paths.unshift(__dirname, path.join(__dirname, '..'));
 
 var journey = require('lib/journey'),
-       mock = require('mock-request'),
        vows = require('../../vows/lib/vows');
-
-var get = mock.get,
-    del = mock.del,
-   post = mock.post,
-    put = mock.put;
 
 var resources = {
     "home": {
@@ -57,8 +51,14 @@ var router = new(journey.Router)(function (map) {
 
     map.put('home/assert', { assert: function (res, body) { return body.length === 9; } }).
         bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
-};
+});
 
+var mock = require('mock-request').mock(router);
+
+var get = mock.get,
+    del = mock.del,
+   post = mock.post,
+    put = mock.put;
 
 journey.env = 'test';
 
@@ -204,10 +204,5 @@ vows.tell('Journey', {
         }
     },
 });
-
-//
-// Initialize the routes
-//
-journey.draw(routes);
 
 
