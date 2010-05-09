@@ -7,3 +7,4 @@ TODO
 - Returning a value from a bound function passes it to the
   next matching route. This can function like middle-ware,
   or filters.
+- Benchmark!
