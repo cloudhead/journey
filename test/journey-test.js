@@ -36,10 +36,11 @@ var resources = {
 var router = new(journey.Router)(function (map) {
     this.route('GET', 'picnic/fail').bind(resources.picnic.fail);
 
+    //map.root.bind(function (res) { res.send("Welcome to the Root") });
     map.get('/home/room').bind(resources.home.room);
     map.get('/undefined').bind();
 
-    map.route('GET', /^(\w+)$/).
+    map.root.bind(function (res) { return resources.home.index(res) });
         bind(function (res, r) { return resources[r].index(res) });
     map.route('GET', /^(\w+)\/([0-9]+)$/).
         bind(function (res, r, k) { return resources[r].get(res, k) });
@@ -49,7 +50,6 @@ var router = new(journey.Router)(function (map) {
         bind(function (res, r, doc) { return resources[r].create(res, doc) });
     map.route('DELETE', /^(\w+)\/([0-9]+)$/).
         bind(function (res, r, k) { return resources[r].destroy(res, k) });
-    map.route('GET', '/').bind(function (res) { return resources.home.index(res) });
 
     map.put('home/assert', { assert: function (res, body) { return body.length === 9; } }).
         bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
