@@ -35,7 +35,10 @@ var resources = {
     "recipies": {}
 };
 
-var routes = function (map) {
+//
+// Initialize the router
+//
+var router = new(journey.Router)(function (map) {
     this.route('GET', 'picnic/fail').bind(resources.picnic.fail);
     map.get('/home/room').bind(resources.home.room);
     map.get('/undefined').bind();
