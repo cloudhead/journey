@@ -4,10 +4,11 @@ var sys = require('sys'),
    path = require('path'),
     url = require('url');
 
-require.paths.unshift(__dirname, path.join(__dirname, '..'));
+require.paths.unshift(__dirname, path.join(__dirname, '..'),
+                                 path.join(__dirname, 'vendor', 'vows'));
 
 var journey = require('lib/journey'),
-       vows = require('../../vows/lib/vows');
+       vows = require('lib/vows');
 
 var resources = {
     "home": {
