@@ -1,6 +1,5 @@
 TODO
 
-- Unbound routes should respond with 501.
 - Implement `bindResource`.
 - Ability to bind multiple functions to a route.
 - `Router.prototype.push`

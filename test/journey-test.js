@@ -40,6 +40,7 @@ var router = new(journey.Router)(function (map) {
     //map.root.bind(function (res) { res.send("Welcome to the Root") });
     map.get('/home/room').bind(resources.home.room);
     map.get('/undefined').bind();
+    map.get('/unbound');
 
     map.root.bind(function (res) { return resources.home.index(res) });
 
@@ -210,6 +211,15 @@ vows.tell('Journey', {
         },
         "returns a 500": function (res) {
             assert.equal(res.status, 500);
+        }
+    },
+    // Trying to access an unbound route, will result in a 501 'Not Implemented'
+    "An unbound route": {
+        topic: function () {
+            return get('/unbound');
+        },
+        "returns a 501": function (res) {
+            assert.equal(res.status, 501);
         }
     },
     // Here, we're trying to use the DELETE method on /
