@@ -79,6 +79,7 @@ Here are a couple of example routes:
     map.del(/^users\/(\d+)$/)            // DELETE /users/45
     map.put(/^users\/(\d+)$/)            // PUT    /users/45
 
+    map.route('/articles')               // *           /articles
     map.route('POST',          '/users') // POST        /users
     map.route(['POST', 'PUT'], '/users') // POST or PUT /users
 
@@ -151,6 +152,16 @@ Here's how we can access the captures:
 A bound function has the following template:
 
     function (responder, [capture1, capture2, ...], data/params)
+
+### Accessing the request object #
+
+From a bound function, you can access the request object with `this.request`, consider
+a request such as `POST /articles`, and a route:
+
+    map.route('/articles').bind(function (res) {
+        this.request.method; // "POST"
+        res.send("Thanks for your " + this.request.method + " request.");
+    });
 
 license
 -------
