@@ -45,6 +45,11 @@ synopsis
         });
     }).listen(8080);
 
+installation
+------------
+
+    $ npm install journey
+
 API
 ---
 
