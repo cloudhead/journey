@@ -5,11 +5,11 @@ var sys = require('sys'),
  events = require('events'),
     url = require('url');
 
-require.paths.unshift(__dirname, path.join(__dirname, '..'),
-                                 path.join(__dirname, 'vendor', 'vows'));
+var vows = require('vows');
 
-var journey = require('lib/journey'),
-       vows = require('lib/vows');
+require.paths.unshift(__dirname, path.join(__dirname, '..'));
+
+var journey = require('lib/journey');
 
 var resources = {
     "home": {
@@ -72,7 +72,7 @@ var get = mock.get,
 
 journey.env = 'test';
 
-vows.tell('Journey', {
+vows.describe('Journey').addVows({
     //
     // SUCCESSFUL (2xx)
     //
