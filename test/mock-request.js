@@ -7,7 +7,7 @@ var router = null;
 
 var mock = {
     mockRequest: function (method, path, headers) {
-        var uri = url.parse(path || '/', true);
+        var uri = url.parse(path || '/');
 
         return {
             listeners: [],
