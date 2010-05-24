@@ -8,7 +8,7 @@
   "licenses"      : ["Apache 2.0"],
   "dependencies"  : [],
   "lib"           : "lib",
-  "version"       : "0.1.0",
+  "version"       : "0.1.1",
   "directories"   : { "lib": "./lib", "test": "./test" },
   "engines"       : { "node": "> 0.1.90" }
 }
