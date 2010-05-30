@@ -158,6 +158,22 @@ A bound function has the following template:
 
     function (responder, [capture1, capture2, ...], data/params)
 
+### Paths #
+
+Sometimes it's useful to have a bunch of routes under a single namespace, that's what the `path` function does.
+Consider the following path and unbound routes:
+
+    map.path('/domain', function () {
+        this.get();        // match 'GET /domain'
+        this.root;         // match 'GET /domain/'
+        this.get('/info'); // match 'GET /domain/info'
+
+        this.path('/users', function () {
+            this.post();   // match 'POST /domain/users'
+            this.get();    // match 'GET  /domain/users'
+        });
+    })
+
 ### Accessing the request object #
 
 From a bound function, you can access the request object with `this.request`, consider
