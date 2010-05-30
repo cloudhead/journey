@@ -48,6 +48,17 @@ var router = new(journey.Router)(function (map) {
     map.get('/twice').bind(function (res) { res.send("twice") });
     map.get(/twice/).bind(function (res) { res.send(302) });
 
+    map.path('/domain', function () {
+        this.path('/v1', function () {
+            this.root.bind(function (res) { res.send({ root: true, version: 1 }) });
+            this.get().bind(function (res) { res.send({ version: 1 }) });
+            this.get('/info').bind(function (res) {
+                res.send(200, {}, ['info']);
+            });
+            this.path('/empty', function () {});
+        });
+    });
+
     map.route(['GET', 'PUT'], /^(\w+)$/).
         bind(function (res, r) { return resources[r].index(res) });
     map.route('GET', /^(\w+)\/([0-9]+)$/).
@@ -106,7 +117,7 @@ vows.describe('Journey').addVows({
         topic: function () {
             var promise = new(events.EventEmitter);
             router.routes.unshift({
-                pattern: '/noparams',
+                pattern: /^noparams$/,
                 method: 'GET', handler: function (res) {
                     promise.emit('success', arguments);
                 }, success: undefined, constraints: {}
@@ -251,6 +262,52 @@ vows.describe('Journey').addVows({
             assert.equal(res.status, 500);
         }
     },
+}).addVows({
+    "Scoped routes": {
+        "A request to a scope with no routes": {
+            topic: function () {
+                return get('/domain/v1/empty');
+            },
+            "returns a 404": function (res) {
+                assert.equal(res.status, 404);
+            }
+        },
+        "A request to a scoped route's root": {
+            topic: function () {
+                return get('/domain/v1/');
+            },
+            "returns a 200": function (res) {
+                assert.equal(res.status, 200);
+            },
+            "calls the correct route": function (res) {
+                assert.equal(res.body.version, 1);
+                assert.equal(res.body.root, true);
+            }
+        },
+        "A request to a scoped route's base route": {
+            topic: function () {
+                return get('/domain/v1');
+            },
+            "returns a 200": function (res) {
+                assert.equal(res.status, 200);
+            },
+            "calls the correct route": function (res) {
+                assert.equal(res.body.version, 1);
+                assert.isUndefined(res.body.root);
+            }
+        },
+        "A request to a scoped route": {
+            topic: function () {
+                return get('/domain/v1/info');
+            },
+            "returns a 200": function (res) {
+                assert.equal(res.status, 200);
+            },
+            "returns a body": function (res) {
+                assert.equal(res.body[0], 'info');
+            }
+        }
+    }
 });
 
 
