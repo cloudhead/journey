@@ -98,6 +98,17 @@ vows.describe('Journey').addVows({
         }
     },
 
+    "A valid request with multiple Accept types": {
+        topic: function () { return get('/', { accept: "text/plain;q=10, application/json" }) },
+
+        "returns a 200": function (res) {
+            assert.equal(res.status, 200);
+        },
+        "returns a body": function (res) {
+            assert.equal(res.body.journey, "honey I'm home!");
+        }
+    },
+
     "A request with uri parameters": {
         topic: function () {
             // URI parameters get parsed into a javascript object, and are passed to the
