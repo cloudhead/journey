@@ -106,7 +106,7 @@ vows.describe('Journey').addVows({
         topic: function () {
             var promise = new(events.EventEmitter);
             router.routes.unshift({
-                patterns: ['/noparams'],
+                pattern: '/noparams',
                 method: 'GET', handler: function (res) {
                     promise.emit('success', arguments);
                 }, success: undefined, constraints: {}
