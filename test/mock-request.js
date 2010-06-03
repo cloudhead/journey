@@ -12,7 +12,10 @@ var mock = {
         return {
             listeners: [],
             method: method,
-            headers: headers || { accept: "application/json", "content-type":'application/json' },
+            headers: headers || {
+                "accept": "application/json",
+                "content-type":'application/json; charset=UTF-8'
+            },
             url: uri,
             setBodyEncoding: function (e) { this.bodyEncoding = e },
             addListener: function (event, callback) {
