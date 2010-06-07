@@ -51,7 +51,7 @@ var router = new(journey.Router)(function (map) {
     map.path('/domain', function () {
         this.path(/v1/, function () {
             this.root.bind(function (res) { res.send({ root: true, version: 1 }) });
-            this.get().bind(function (res) { res.send({ version: 1 }) });
+            this.get(/\/?/).bind(function (res) { res.send({ version: 1 }) });
             this.get('/info').bind(function (res) {
                 res.send(200, {}, ['info']);
             });
