@@ -74,7 +74,7 @@ var router = new(journey.Router)(function (map) {
         bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
 });
 
-var mock = require('mock-request').mock(router);
+var mock = require('lib/journey/mock-request').mock(router);
 
 var get = mock.get,
     del = mock.del,
