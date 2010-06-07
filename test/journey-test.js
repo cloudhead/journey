@@ -319,6 +319,6 @@ vows.describe('Journey').addVows({
             }
         }
     }
-});
+}).export(module);
 
 
