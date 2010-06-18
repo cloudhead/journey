@@ -65,6 +65,8 @@ var router = new(journey.Router)(function (map) {
         bind(function (res, r, k) { return resources[r].get(res, k) });
     map.route('PUT', /^(\w+)\/([0-9]+)$/, { payload: true }).
         bind(function (res, r, k) { return resources[r].update(res, k) });
+    map.route('POST', /^tuple$/, { payload: true }).
+        bind(function (res, doc) { return resources.tuple(res, doc) });
     map.route('POST', /^(\w+)$/, { payload: true }).
         bind(function (res, r, doc) { return resources[r].create(res, doc) });
     map.route('DELETE', /^(\w+)\/([0-9]+)$/).
@@ -174,6 +176,20 @@ vows.describe('Journey').addVows({
             },
             "gets parsed into an object": function (res) {
                 assert.equal(res.body.journey, 'cooking-time: 13min');
+            }
+        },
+        "with a JSON Array body": {
+            topic: function () {
+                resources.tuple = function (res, input) {
+                    res.send(201, {}, input.join('-'));
+                };
+                return post('/tuple', null, [1, 2, 3]);
+            },
+            "returns a 201": function (res) {
+                assert.equal(res.status, 201);
+            },
+            "gets parsed into an object": function (res) {
+                assert.equal(res.body.trim(), '1-2-3');
             }
         },
         "with a query-string body": {
