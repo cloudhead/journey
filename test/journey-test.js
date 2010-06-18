@@ -199,7 +199,8 @@ vows.describe('Journey').addVows({
                             (input['chicken'].length  +
                              input['fries'].length)   + 'min');
                 };
-                return post('/kitchen', {accept: 'application/json'},
+                return post('/kitchen', {'accept': 'application/json',
+                                        'content-type': 'multipart/form-data'},
                                         "chicken=roasted&fries=golden");
             },
             "returns a 201": function (res) {
