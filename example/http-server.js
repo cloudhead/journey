@@ -1,4 +1,5 @@
-var path = require('path');
+var path = require('path'),
+    sys = require('sys');
 
 require.paths.unshift(path.join(__dirname, '..', 'lib'));
 
@@ -28,3 +29,5 @@ require('http').createServer(function (request, response) {
         });
     });
 }).listen(8080);
+
+sys.puts('journey listening at http://127.0.0.1:8080');
