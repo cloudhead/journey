@@ -9,7 +9,7 @@
   "dependencies"  : [],
   "lib"           : "lib",
   "main"          : "./lib/journey",
-  "version"       : "0.2.8",
+  "version"       : "0.2.9",
   "directories"   : { "test": "./test" },
   "engines"       : { "node": "> 0.1.93" }
 }
