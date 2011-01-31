@@ -74,6 +74,38 @@ var router = new(journey.Router)(function (map) {
 
     map.put('home/assert', { assert: function (res, body) { return body.length === 9; } }).
         bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
+    
+    //
+    // Setup a secure portion of the router
+    //
+    map.get('this_is/secure').filter().
+        bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
+    
+    map.filter(function () {
+      map.get('this_is/still_secure').
+          bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
+    });
+            
+    map.path('/scoped_auth', function () {
+        var asyncAuth = function (request, body, cb) {
+            setTimeout(function () {
+                return request.headers.admin === true 
+                    ? cb(null) 
+                    : cb(new journey.NotAuthorized('Not Authorized'));
+            }, 200);
+        }
+      
+        this.filter(asyncAuth, function () {
+          this.get('/secure').
+              bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
+        });        
+    });
+}, {
+  filter: function (request, body, cb) {
+      return request.headers.authorized === true 
+          ? cb(null) 
+          : cb(new journey.NotAuthorized('Not Authorized'));
+  } 
 });
 
 var mock = require('lib/journey/mock-request').mock(router);
@@ -85,7 +117,7 @@ var get = mock.get,
 
 journey.env = 'test';
 
-vows.describe('Journey').addVows({
+vows.describe('Journey').addBatch({
     //
     // SUCCESSFUL (2xx)
     //
@@ -131,15 +163,14 @@ vows.describe('Journey').addVows({
             var promise = new(events.EventEmitter);
             router.routes.unshift({
                 pattern: /^noparams$/,
-                method: 'GET', handler: function (res) {
-                    promise.emit('success', arguments);
+                method: 'GET', handler: function (res, params) {
+                    promise.emit('success', params);
                 }, success: undefined, constraints: {}
             });
             router.route(mock.mockRequest('GET', '/noparams', {}));
             return promise;
         },
-        "should pass an empty params object": function (args) {
-            var params = args[args.length - 1];
+        "should pass an empty params object": function (params) {
             assert.isObject(params);
             assert.equal(Object.keys(params).length, 0);
         }
@@ -244,7 +275,7 @@ vows.describe('Journey').addVows({
     },
     // Trying to access an undefined function will result in a 500,
     // as long as the uri format is valid
-    "A route binded to an undefined function": {
+    "A route bound to an undefined function": {
         topic: function () {
             return get('/undefined');
         },
@@ -289,8 +320,8 @@ vows.describe('Journey').addVows({
         "returns a 500": function (res) {
             assert.equal(res.status, 500);
         }
-    },
-}).addVows({
+    }
+}).addBatch({
     "Scoped routes": {
         "A request to a scope with no routes": {
             topic: function () {
@@ -333,6 +364,87 @@ vows.describe('Journey').addVows({
             },
             "returns a body": function (res) {
                 assert.equal(res.body[0], 'info');
+            }
+        }
+    }
+}).addBatch({
+    "Secure routes": {
+        "A request to a secure route": {
+            "when authorized": {
+                topic: function () {
+                    return get('/this_is/secure', { authorized: true });
+                },
+                "returns a 200": function (res) {
+                    assert.equal(res.status, 200);
+                },
+                "returns a body": function (res) {
+                    assert.equal(res.body, 'OK');
+                }
+            },
+            "when unauthorized": {
+                topic: function () {
+                    return get('/this_is/secure');
+                },
+                "returns a 403": function (res) {
+                    assert.equal(res.status, 403);
+                },
+                "returns a body with 'Not Authorized'": function (res) {
+                    assert.equal(res.body.error, 'Not Authorized');
+                }
+            }
+        }
+    }
+}).addBatch({
+    "Scoped secure routes using secure()": {
+        "A request to a secure route": {
+            "when authorized": {
+                topic: function () {
+                    return get('/this_is/still_secure', { authorized: true });
+                },
+                "returns a 200": function (res) {
+                    assert.equal(res.status, 200);
+                },
+                "returns a body": function (res) {
+                    assert.equal(res.body, 'OK');
+                }
+            },
+            "when unauthorized": {
+                topic: function () {
+                    return get('/this_is/still_secure');
+                },
+                "returns a 403": function (res) {
+                    assert.equal(res.status, 403);
+                },
+                "returns a body with 'Not Authorized'": function (res) {
+                    assert.equal(res.body.error, 'Not Authorized');
+                }
+            }
+        }
+    }
+}).addBatch({
+    "Scoped secure routes using path()": {
+        "A request to a secure route": {
+            "when authorized": {
+                topic: function () {
+                    return get('/scoped_auth/secure', { admin: true });
+                },
+                "returns a 200": function (res) {
+                    assert.equal(res.status, 200);
+                },
+                "returns a body": function (res) {
+                    assert.equal(res.body, 'OK');
+                }
+            },
+            "when unauthorized": {
+                topic: function () {
+                    return get('/scoped_auth/secure');
+                },
+                "returns a 403": function (res) {
+                    assert.equal(res.status, 403);
+                },
+                "returns a body with 'Not Authorized'": function (res) {
+                    assert.equal(res.body.error, 'Not Authorized');
+                }
             }
         }
     }
