@@ -63,11 +63,11 @@ var router = new(journey.Router)(function (map) {
         bind(function (res, r) { return resources[r].index(res) });
     map.route('GET', /^(\w+)\/([0-9]+)$/).
         bind(function (res, r, k) { return resources[r].get(res, k) });
-    map.route('PUT', /^(\w+)\/([0-9]+)$/, { payload: true }).
+    map.route('PUT', /^(\w+)\/([0-9]+)$/).
         bind(function (res, r, k) { return resources[r].update(res, k) });
-    map.route('POST', /^tuple$/, { payload: true }).
+    map.route('POST', /^tuple$/).
         bind(function (res, doc) { return resources.tuple(res, doc) });
-    map.route('POST', /^(\w+)$/, { payload: true }).
+    map.route('POST', /^(\w+)$/).
         bind(function (res, r, doc) { return resources[r].create(res, doc) });
     map.route('DELETE', /^(\w+)\/([0-9]+)$/).
         bind(function (res, r, k) { return resources[r].destroy(res, k) });
