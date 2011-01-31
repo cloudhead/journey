@@ -74,6 +74,13 @@ var router = new(journey.Router)(function (map) {
 
     map.put('home/assert', { assert: function (res, body) { return body.length === 9; } }).
         bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
+        
+    //
+    // Setup a secure portion of the router
+    //
+    map.auth(function (request, body) {
+      request.headers.authorized = true
+    });
 });
 
 var mock = require('lib/journey/mock-request').mock(router);
