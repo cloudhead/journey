@@ -173,6 +173,64 @@ Consider the following path and unbound routes:
             this.get();    // match 'GET  /domain/users'
         });
     })
+    
+### Filters #
+
+Often it's convenient to disallow certain requests based on predefined criteria. A great example of this is Authorization:
+
+    function authorize (request, body, cb) {
+      return request.headers.authorized === true 
+          ? cb(null) 
+          : cb(new journey.NotAuthorized('Not Authorized'));
+    }
+    
+    function authorizeAdmin (request, body, cb) {
+      return request.headers.admin === true 
+          ? cb(null) 
+          : cb(new journey.NotAuthorized('Not Admin'));
+    }
+
+Journey exposes this in three separate location through the `filter` API:
+
+#### Set a global filter
+    
+    var router = new(journey.Router)(function (map) {
+        // Define routes here
+    }, { filter: authorize });
+    
+Remark: This filter will not actually be enforced until you use the APIs exposed in (2) and (3)    
+  
+#### Set a scoped filter in your route function
+    
+    var router = new(journey.Router)(function (map) {
+        map.filter(function () {
+            //
+            // Routes in this scope will use the 'authorize' function
+            //
+        });
+        
+        map.filter(authorizeAdmin, function () {
+            //
+            // Routes in this scope will use the 'authorizeAdmin' function
+            //
+        })
+    }, { filter: authorize });
+
+#### Set a filter on an individual route
+    
+    var router = new(journey.Router)(function (map) {
+        map.get('/authorized').filter().bind(function (res, params) {
+            //
+            // This route will be filtered using the 'authorize' function
+            //          
+        });
+        
+        map.get('/admin').filter(authorizeAdmin).bind(function (res, params) {
+            //
+            // This route will be filtered using the 'authorizeAdmin' function
+            //                    
+        });
+    }, { filter: authorize });
 
 ### Accessing the request object #
 
