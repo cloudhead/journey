@@ -74,12 +74,33 @@ var router = new(journey.Router)(function (map) {
 
     map.put('home/assert', { assert: function (res, body) { return body.length === 9; } }).
         bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
-        
+    
     //
     // Setup a secure portion of the router
     //
-    map.auth(function (request, body) {
-      request.headers.authorized = true
+    map.auth(function (request, body, cb) {
+        return request.headers.authorized === true ? cb(null, true) : cb(new Error('Not Authorized'), false);
+    });
+    
+    map.get('this_is/secure').secure().
+        bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
+    
+    
+    map.secure(function () {
+      map.get('this_is/still_secure').
+          bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
+    });
+            
+    map.path('/scoped_auth', function () {
+        this.auth(function (request, body, cb) {
+            setTimeout(function () {
+                return request.headers.admin === true ? cb(null, true) : cb(new Error('Not Authorized'), false);
+            }, 200);
+        });
+        
+        
+        this.get('/secure').secure().
+            bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
     });
 });
 
@@ -92,7 +113,7 @@ var get = mock.get,
 
 journey.env = 'test';
 
-vows.describe('Journey').addVows({
+vows.describe('Journey').addBatch({
     //
     // SUCCESSFUL (2xx)
     //
@@ -296,7 +317,7 @@ vows.describe('Journey').addVows({
             assert.equal(res.status, 500);
         }
     }
-}).addVows({
+}).addBatch({
     "Scoped routes": {
         "A request to a scope with no routes": {
             topic: function () {
@@ -339,6 +360,87 @@ vows.describe('Journey').addVows({
             },
             "returns a body": function (res) {
                 assert.equal(res.body[0], 'info');
+            }
+        }
+    }
+}).addBatch({
+    "Secure routes": {
+        "A request to a secure route": {
+            "when authorized": {
+                topic: function () {
+                    return get('/this_is/secure', { authorized: true });
+                },
+                "returns a 200": function (res) {
+                    assert.equal(res.status, 200);
+                },
+                "returns a body": function (res) {
+                    assert.equal(res.body, 'OK');
+                }
+            },
+            "when unauthorized": {
+                topic: function () {
+                    return get('/this_is/secure');
+                },
+                "returns a 403": function (res) {
+                    assert.equal(res.status, 403);
+                },
+                "returns a body with 'Not Authorized'": function (res) {
+                    assert.equal(res.body.error, 'Not Authorized');
+                }
+            }
+        }
+    }
+}).addBatch({
+    "Scoped secure routes using secure()": {
+        "A request to a secure route": {
+            "when authorized": {
+                topic: function () {
+                    return get('/this_is/still_secure', { authorized: true });
+                },
+                "returns a 200": function (res) {
+                    assert.equal(res.status, 200);
+                },
+                "returns a body": function (res) {
+                    assert.equal(res.body, 'OK');
+                }
+            },
+            "when unauthorized": {
+                topic: function () {
+                    return get('/this_is/still_secure');
+                },
+                "returns a 403": function (res) {
+                    assert.equal(res.status, 403);
+                },
+                "returns a body with 'Not Authorized'": function (res) {
+                    assert.equal(res.body.error, 'Not Authorized');
+                }
+            }
+        }
+    }
+}).addBatch({
+    "Scoped secure routes using path()": {
+        "A request to a secure route": {
+            "when authorized": {
+                topic: function () {
+                    return get('/scoped_auth/secure', { admin: true });
+                },
+                "returns a 200": function (res) {
+                    assert.equal(res.status, 200);
+                },
+                "returns a body": function (res) {
+                    assert.equal(res.body, 'OK');
+                }
+            },
+            "when unauthorized": {
+                topic: function () {
+                    return get('/scoped_auth/secure');
+                },
+                "returns a 403": function (res) {
+                    assert.equal(res.status, 403);
+                },
+                "returns a body with 'Not Authorized'": function (res) {
+                    assert.equal(res.body.error, 'Not Authorized');
+                }
             }
         }
     }
