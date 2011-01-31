@@ -72,7 +72,7 @@ var router = new(journey.Router)(function (map) {
     map.route('DELETE', /^(\w+)\/([0-9]+)$/).
         bind(function (res, r, k) { return resources[r].destroy(res, k) });
 
-    map.put('home/assert', { assert: function (res, body) { return body.length === 9; } }).
+    map.put('home/assert').filter(function (res, req, body) { return body.length === 9; }).
         bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
     
     //
@@ -165,7 +165,7 @@ vows.describe('Journey').addBatch({
                 pattern: /^noparams$/,
                 method: 'GET', handler: function (res, params) {
                     promise.emit('success', params);
-                }, success: undefined, constraints: {}
+                }, success: undefined, constraints: []
             });
             router.route(mock.mockRequest('GET', '/noparams', {}));
             return promise;
