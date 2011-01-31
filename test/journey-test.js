@@ -78,30 +78,34 @@ var router = new(journey.Router)(function (map) {
     //
     // Setup a secure portion of the router
     //
-    map.auth(function (request, body, cb) {
-        return request.headers.authorized === true ? cb(null, true) : cb(new Error('Not Authorized'), false);
-    });
-    
-    map.get('this_is/secure').secure().
+    map.get('this_is/secure').filter().
         bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
     
-    
-    map.secure(function () {
+    map.filter(function () {
       map.get('this_is/still_secure').
           bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
     });
             
     map.path('/scoped_auth', function () {
-        this.auth(function (request, body, cb) {
+        var asyncAuth = function (request, body, cb) {
             setTimeout(function () {
-                return request.headers.admin === true ? cb(null, true) : cb(new Error('Not Authorized'), false);
+                return request.headers.admin === true 
+                    ? cb(null) 
+                    : cb(new journey.NotAuthorized('Not Authorized'));
             }, 200);
-        });
-        
-        
-        this.get('/secure').secure().
-            bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
+        }
+      
+        this.filter(asyncAuth, function () {
+          this.get('/secure').
+              bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
+        });        
     });
+}, {
+  filter: function (request, body, cb) {
+      return request.headers.authorized === true 
+          ? cb(null) 
+          : cb(new journey.NotAuthorized('Not Authorized'));
+  } 
 });
 
 var mock = require('lib/journey/mock-request').mock(router);
