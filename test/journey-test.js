@@ -138,15 +138,14 @@ vows.describe('Journey').addVows({
             var promise = new(events.EventEmitter);
             router.routes.unshift({
                 pattern: /^noparams$/,
-                method: 'GET', handler: function (res) {
-                    promise.emit('success', arguments);
+                method: 'GET', handler: function (res, params) {
+                    promise.emit('success', params);
                 }, success: undefined, constraints: {}
             });
             router.route(mock.mockRequest('GET', '/noparams', {}));
             return promise;
         },
-        "should pass an empty params object": function (args) {
-            var params = args[args.length - 1];
+        "should pass an empty params object": function (params) {
             assert.isObject(params);
             assert.equal(Object.keys(params).length, 0);
         }
@@ -251,7 +250,7 @@ vows.describe('Journey').addVows({
     },
     // Trying to access an undefined function will result in a 500,
     // as long as the uri format is valid
-    "A route binded to an undefined function": {
+    "A route bound to an undefined function": {
         topic: function () {
             return get('/undefined');
         },
@@ -296,7 +295,7 @@ vows.describe('Journey').addVows({
         "returns a 500": function (res) {
             assert.equal(res.status, 500);
         }
-    },
+    }
 }).addVows({
     "Scoped routes": {
         "A request to a scope with no routes": {
