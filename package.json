@@ -11,5 +11,5 @@
   "main"          : "./lib/journey",
   "version"       : "0.3.0",
   "directories"   : { "test": "./test" },
-  "engines"       : { "node": "> 0.1.93" }
+  "engines"       : { "node": "> 0.2.6" }
 }
