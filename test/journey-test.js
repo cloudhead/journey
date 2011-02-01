@@ -34,7 +34,15 @@ var resources = {
 //
 // Initialize the router
 //
-var router = new(journey.Router)(function (map) {
+var router = new(journey.Router)({
+    filter: function (request, body, cb) {
+        return request.headers.authorized === true
+            ? cb(null)
+            : cb(new journey.NotAuthorized('Not Authorized'));
+    }
+});
+
+router.map(function (map) {
     this.route('GET', 'picnic/fail').bind(resources.picnic.fail);
 
     //map.root.bind(function (res) { res.send("Welcome to the Root") });
@@ -100,12 +108,6 @@ var router = new(journey.Router)(function (map) {
               bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
         });        
     });
-}, {
-  filter: function (request, body, cb) {
-      return request.headers.authorized === true 
-          ? cb(null) 
-          : cb(new journey.NotAuthorized('Not Authorized'));
-  } 
 });
 
 var mock = require('lib/journey/mock-request').mock(router);
@@ -167,7 +169,7 @@ vows.describe('Journey').addBatch({
                     promise.emit('success', params);
                 }, success: undefined, constraints: []
             });
-            router.route(mock.mockRequest('GET', '/noparams', {}));
+            router.handle(mock.mockRequest('GET', '/noparams', {}));
             return promise;
         },
         "should pass an empty params object": function (params) {
