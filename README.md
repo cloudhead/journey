@@ -15,16 +15,19 @@ synopsis
     var journey = require('journey');
 
     //
-    // Create a Router object with an associated routing table
+    // Create a Router
     //
-    var router = new(journey.Router)(function (map) {
-        map.root.bind(function (res) { res.send("Welcome") });
-        map.get(/^trolls\/([0-9]+)$/).bind(function (res, id) {
+    var router = new(journey.Router);
+
+    // Create the routing table
+    router.map(function () {
+        this.root.bind(function (req, res) { res.send("Welcome") });
+        this.get(/^trolls\/([0-9]+)$/).bind(function (req, res, id) {
             database('trolls').get(id, function (doc) {
                 res.send(200, {}, doc);
             });
         };
-        map.post('/trolls').bind(function (res, data) {
+        this.post('/trolls').bind(function (req, res, data) {
             sys.puts(data.type); // "Cave-Troll"
             res.send(200);
         });
@@ -38,7 +41,7 @@ synopsis
             //
             // Dispatch the request to the router
             //
-            router.route(request, body, function (result) {
+            router.handle(request, body, function (result) {
                 response.writeHead(result.status, result.headers);
                 response.end(result.body);
             });
@@ -55,17 +58,22 @@ API
 
 You create a router with the `journey.Router` constructor:
 
-    var router = new(journey.Router)(function (map) {
-        // Define routes here
-    });
+    var router = new(journey.Router);
 
-The returned object exposes a `route` method, which takes three arguments:
+You define some routes, with bound functions:
+
+    router.get('/hello').bind(function (req, res) { res.send('Hi there!') });
+    router.put('/candles').bind(function (req, res) { ... });
+
+*Note that you may also use the `map` function to define routes.*
+
+The `router` object exposes a `handle` method, which takes three arguments:
 an `http.ServerRequest` instance, a body, and a callback, as such:
 
     function route(request, body, callback)
 
 and asynchronously calls the callback with an object containing the response
-headers, status and body:
+headers, status and body, on the first matching route:
 
     { status: 200,
       headers: {"Content-Type":"application/json"},
@@ -78,19 +86,19 @@ Note that the response body will either be JSON data, or empty.
 
 Here are a couple of example routes:
 
-    // HTTP methods                      // request
-    map.get('/users')                    // GET    /users
-    map.post('/users')                   // POST   /users
-    map.del(/^users\/(\d+)$/)            // DELETE /users/45
-    map.put(/^users\/(\d+)$/)            // PUT    /users/45
+    // route                                // matching request
+    router.get('/users')                    // GET    /users
+    router.post('/users')                   // POST   /users
+    router.del(/^users\/(\d+)$/)            // DELETE /users/45
+    router.put(/^users\/(\d+)$/)            // PUT    /users/45
 
-    map.route('/articles')               // *           /articles
-    map.route('POST',          '/users') // POST        /users
-    map.route(['POST', 'PUT'], '/users') // POST or PUT /users
+    router.route('/articles')               // *           /articles
+    router.route('POST',          '/users') // POST        /users
+    router.route(['POST', 'PUT'], '/users') // POST or PUT /users
 
-    map.root                             // GET /
-    map.any                              // Matches all request
-    map.post('/', {                      // Only match POST requests to /
+    router.root                             // GET /
+    router.any                              // Matches all request
+    router.post('/', {                      // Only match POST requests to /
         assert: function (req) {         // with data in the body.
             return req.body.length > 0;
         }
@@ -99,13 +107,13 @@ Here are a couple of example routes:
 Any of these routes can be bound to a function or object which responds
 to the `apply` method. We use `bind` for that:
 
-    map.get('/hello').bind(function (res) {});
+    router.get('/hello').bind(function (req, res) {});
 
 If there is a match, the bound function is called, and passed the `response` object,
 as first argument. Calling the `send` method on this object will trigger the callback,
 passing the response to it:
 
-    map.get('/hello').bind(function (res) {
+    router.get('/hello').bind(function (req, res) {
         res.send(200, {}, {hello: "world"});
     });
 
@@ -129,7 +137,7 @@ This will bypass JSON conversion.
 
 Consider a request such as `GET /users?limit=5`, I can get the url params like this:
 
-    map.get('/users').bind(function (res, params) {
+    router.get('/users').bind(function (req, res, params) {
         params.limit; // 5
     });
 
@@ -145,7 +153,7 @@ say we have a request like `GET /trolls/42`, and the following route:
 
 Here's how we can access the captures:
 
-    map.get(/^([a-z]+)\/([0-9]+)$/).bind(function (res, resource, id, params) {
+    router.get(/^([a-z]+)\/([0-9]+)$/).bind(function (req, res, resource, id, params) {
         res;      // response object
         resource; // "trolls"
         id;       // 42
@@ -156,14 +164,14 @@ Here's how we can access the captures:
 
 A bound function has the following template:
 
-    function (responder, [capture1, capture2, ...], data/params)
+    function (request, responder, [capture1, capture2, ...], data/params)
 
 ### Paths #
 
 Sometimes it's useful to have a bunch of routes under a single namespace, that's what the `path` function does.
 Consider the following path and unbound routes:
 
-    map.path('/domain', function () {
+    router.path('/domain', function () {
         this.get();        // match 'GET /domain'
         this.root;         // match 'GET /domain/'
         this.get('/info'); // match 'GET /domain/info'
@@ -173,71 +181,73 @@ Consider the following path and unbound routes:
             this.get();    // match 'GET  /domain/users'
         });
     })
-    
+
 ### Filters #
 
 Often it's convenient to disallow certain requests based on predefined criteria. A great example of this is Authorization:
 
     function authorize (request, body, cb) {
-      return request.headers.authorized === true 
-          ? cb(null) 
+      return request.headers.authorized === true
+          ? cb(null)
           : cb(new journey.NotAuthorized('Not Authorized'));
     }
-    
+
     function authorizeAdmin (request, body, cb) {
-      return request.headers.admin === true 
-          ? cb(null) 
+      return request.headers.admin === true
+          ? cb(null)
           : cb(new journey.NotAuthorized('Not Admin'));
     }
 
 Journey exposes this in three separate location through the `filter` API:
 
 #### Set a global filter
-    
-    var router = new(journey.Router)(function (map) {
-        // Define routes here
-    }, { filter: authorize });
-    
-Remark: This filter will not actually be enforced until you use the APIs exposed in (2) and (3)    
-  
+
+    var router = new(journey.Router)({ filter: authorize });
+
+*Note: This filter will not actually be enforced until you use the APIs exposed in (2) and (3)*
+
 #### Set a scoped filter in your route function
-    
-    var router = new(journey.Router)(function (map) {
-        map.filter(function () {
+
+    var router = new(journey.Router)({ filter: authorize });
+
+    router.map(function () {
+        this.filter(function () {
             //
             // Routes in this scope will use the 'authorize' function
             //
         });
-        
-        map.filter(authorizeAdmin, function () {
+
+        this.filter(authorizeAdmin, function () {
             //
             // Routes in this scope will use the 'authorizeAdmin' function
             //
-        })
-    }, { filter: authorize });
+        });
+    });
 
 #### Set a filter on an individual route
-    
-    var router = new(journey.Router)(function (map) {
-        map.get('/authorized').filter().bind(function (res, params) {
+
+    var router = new(journey.Router)({ filter: authorize });
+
+    router.map(function () {
+        this.get('/authorized').filter().bind(function (req, res, params) {
             //
             // This route will be filtered using the 'authorize' function
-            //          
+            //
         });
-        
-        map.get('/admin').filter(authorizeAdmin).bind(function (res, params) {
+
+        this.get('/admin').filter(authorizeAdmin).bind(function (req, res, params) {
             //
             // This route will be filtered using the 'authorizeAdmin' function
-            //                    
+            //
         });
-    }, { filter: authorize });
+    });
 
 ### Accessing the request object #
 
 From a bound function, you can access the request object with `this.request`, consider
 a request such as `POST /articles`, and a route:
 
-    map.route('/articles').bind(function (res) {
+    router.route('/articles').bind(function (req, res) {
         this.request.method; // "POST"
         res.send("Thanks for your " + this.request.method + " request.");
     });

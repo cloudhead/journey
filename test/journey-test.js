@@ -35,6 +35,7 @@ var resources = {
 // Initialize the router
 //
 var router = new(journey.Router)({
+    api: 'basic',
     filter: function (request, body, cb) {
         return request.headers.authorized === true
             ? cb(null)
