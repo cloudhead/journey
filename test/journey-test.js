@@ -1,8 +1,6 @@
 var http = require('http'),
   assert = require('assert'),
-    path = require('path'),
-  events = require('events'),
-     url = require('url');
+  events = require('events');
 
 var vows = require('vows');
 
