@@ -1,15 +1,12 @@
-var sys = require('sys'),
-   http = require('http'),
- assert = require('assert'),
-   path = require('path'),
- events = require('events'),
-    url = require('url');
+var http = require('http'),
+  assert = require('assert'),
+    path = require('path'),
+  events = require('events'),
+     url = require('url');
 
 var vows = require('vows');
 
-require.paths.unshift(__dirname, path.join(__dirname, '..'));
-
-var journey = require('lib/journey');
+var journey = require('../lib/journey');
 
 var resources = {
     "home": {
@@ -111,7 +108,7 @@ router.map(function (map) {
     });
 });
 
-var mock = require('lib/journey/mock-request').mock(router);
+var mock = require('../lib/journey/mock-request').mock(router);
 
 var get = mock.get,
     del = mock.del,
