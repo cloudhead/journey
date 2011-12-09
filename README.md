@@ -26,7 +26,7 @@ synopsis
             database('trolls').get(id, function (doc) {
                 res.send(200, {}, doc);
             });
-        };
+        });
         this.post('/trolls').bind(function (req, res, data) {
             sys.puts(data.type); // "Cave-Troll"
             res.send(200);
