@@ -47,6 +47,7 @@ router.map(function (map) {
     map.get('/unbound');
 
     map.root.bind(function (res) { return resources.home.index(res) });
+    map.opt('*').bind(function (res) { return resources.home.index(res) });
 
     map.get('/').bind(function (res) { res.send(200) });
     map.get('/twice').bind(function (res) { res.send("twice") });
@@ -110,6 +111,7 @@ var mock = require('../lib/journey/mock-request').mock(router);
 
 var get = mock.get,
     del = mock.del,
+    opt = mock.opt,
    post = mock.post,
     put = mock.put;
 
@@ -238,6 +240,19 @@ vows.describe('Journey').addBatch({
             "gets parsed into an object": function (res) {
                 assert.equal(res.body.journey, 'cooking-time: 13min');
             }
+        }
+    },
+
+
+    //
+    // Cross-Origin Resource Sharing preflight OPTIONS request
+    //
+    "An OPTIONS request": {
+        topic: function () {
+            return opt('*');
+        },
+        "returns a 200": function (res) {
+            assert.equal(res.status, 200);
         }
     },
 
