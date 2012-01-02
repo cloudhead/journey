@@ -47,6 +47,7 @@ router.map(function (map) {
     map.get('/unbound');
 
     map.root.bind(function (res) { return resources.home.index(res) });
+    map.opt('*').bind(function (res) { return resources.home.index(res) });
 
     map.get('/').bind(function (res) { res.send(200) });
     map.get('/twice').bind(function (res) { res.send("twice") });
@@ -242,6 +243,19 @@ vows.describe('Journey').addBatch({
         }
     },
 
+
+    //
+    // Cross-Origin Resource Sharing preflight OPTIONS request
+    //
+    "An OPTIONS request": {
+        topic: function () {
+            return opt('*');
+        },
+        "returns a 200": function (res) {
+            assert.equal(res.status, 200);
+        }
+    },
+
     //
     // CLIENT ERRORS (4xx)
     //
@@ -260,15 +274,6 @@ vows.describe('Journey').addBatch({
         },
         "returns a 404": function (res) {
             assert.equal(res.status, 404);
-        }
-    },
-    // This request doesn't use a supported method, it'll therefore return a 405.
-    "An unsupported OPTIONS request": {
-        topic: function () {
-            return opt('/');
-        },
-        "returns a 405": function (res) {
-            assert.equal(res.status, 405);
         }
     },
     // This request contains malformed JSON data, the server replies
