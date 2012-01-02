@@ -110,6 +110,7 @@ var mock = require('../lib/journey/mock-request').mock(router);
 
 var get = mock.get,
     del = mock.del,
+    opt = mock.opt,
    post = mock.post,
     put = mock.put;
 
@@ -259,6 +260,15 @@ vows.describe('Journey').addBatch({
         },
         "returns a 404": function (res) {
             assert.equal(res.status, 404);
+        }
+    },
+    // This request doesn't use a supported method, it'll therefore return a 405.
+    "An unsupported OPTIONS request": {
+        topic: function () {
+            return opt('/');
+        },
+        "returns a 405": function (res) {
+            assert.equal(res.status, 405);
         }
     },
     // This request contains malformed JSON data, the server replies
