@@ -104,6 +104,16 @@ router.map(function (map) {
               bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
         });        
     });
+
+		map.path('/forbidden', function() {
+			forbidden_filter = function (request, body, cb) {
+				cb(new journey.Forbidden());
+			}
+
+			this.filter(forbidden_filter, function () {
+				this.get('/response').bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
+			});
+		});
 });
 
 var mock = require('../lib/journey/mock-request').mock(router);
@@ -302,6 +312,16 @@ vows.describe('Journey').addBatch({
         },
         "sets the 'allowed' header correctly": function (res) {
             assert.equal(res.headers.allow, 'GET');
+        }
+    },
+		// This request is trying to access a non accessible location on the webserver, so Journey responds
+    // with a 403 'Forbidden'
+    "A request to a forbidden location": {
+        topic: function () {
+            return get('/forbidden/response');
+        },
+        "returns a 403": function (res) {
+            assert.equal(res.status, 403);
         }
     },
 
