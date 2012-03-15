@@ -383,8 +383,8 @@ vows.describe('Journey').addBatch({
                 topic: function () {
                     return get('/this_is/secure');
                 },
-                "returns a 403": function (res) {
-                    assert.equal(res.status, 403);
+                "returns a 401": function (res) {
+                    assert.equal(res.status, 401);
                 },
                 "returns a body with 'Not Authorized'": function (res) {
                     assert.equal(res.body.error, 'Not Authorized');
@@ -410,8 +410,8 @@ vows.describe('Journey').addBatch({
                 topic: function () {
                     return get('/this_is/still_secure');
                 },
-                "returns a 403": function (res) {
-                    assert.equal(res.status, 403);
+                "returns a 401": function (res) {
+                    assert.equal(res.status, 401);
                 },
                 "returns a body with 'Not Authorized'": function (res) {
                     assert.equal(res.body.error, 'Not Authorized');
@@ -437,8 +437,8 @@ vows.describe('Journey').addBatch({
                 topic: function () {
                     return get('/scoped_auth/secure');
                 },
-                "returns a 403": function (res) {
-                    assert.equal(res.status, 403);
+                "returns a 401": function (res) {
+                    assert.equal(res.status, 401);
                 },
                 "returns a body with 'Not Authorized'": function (res) {
                     assert.equal(res.body.error, 'Not Authorized');
