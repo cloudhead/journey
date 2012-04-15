@@ -7,7 +7,13 @@
   "contributors"  : [],
   "licenses"      : ["Apache 2.0"],
   "dependencies"  : [],
+  "devDependencies": {
+    "vows"        : "0.6.x"
+  },
   "lib"           : "lib",
+  "scripts"       : {
+    "test"        : "./node_modules/vows/bin/vows"
+  },
   "main"          : "./lib/journey",
   "version"       : "0.4.0-pre-3",
   "directories"   : { "test": "./test" },
