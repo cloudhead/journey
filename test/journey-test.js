@@ -104,6 +104,16 @@ router.map(function (map) {
               bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
         });        
     });
+
+		map.path('/forbidden', function() {
+			forbidden_filter = function (request, body, cb) {
+				cb(new journey.Forbidden());
+			}
+
+			this.filter(forbidden_filter, function () {
+				this.get('/response').bind(function (res) { res.send(200, {"Content-Type":"text/html"}, "OK"); });
+			});
+		});
 });
 
 var mock = require('../lib/journey/mock-request').mock(router);
@@ -304,6 +314,16 @@ vows.describe('Journey').addBatch({
             assert.equal(res.headers.allow, 'GET');
         }
     },
+		// This request is trying to access a non accessible location on the webserver, so Journey responds
+    // with a 403 'Forbidden'
+    "A request to a forbidden location": {
+        topic: function () {
+            return get('/forbidden/response');
+        },
+        "returns a 403": function (res) {
+            assert.equal(res.status, 403);
+        }
+    },
 
     //
     // SERVER ERRORS (5xx)
@@ -383,8 +403,8 @@ vows.describe('Journey').addBatch({
                 topic: function () {
                     return get('/this_is/secure');
                 },
-                "returns a 403": function (res) {
-                    assert.equal(res.status, 403);
+                "returns a 401": function (res) {
+                    assert.equal(res.status, 401);
                 },
                 "returns a body with 'Not Authorized'": function (res) {
                     assert.equal(res.body.error, 'Not Authorized');
@@ -410,8 +430,8 @@ vows.describe('Journey').addBatch({
                 topic: function () {
                     return get('/this_is/still_secure');
                 },
-                "returns a 403": function (res) {
-                    assert.equal(res.status, 403);
+                "returns a 401": function (res) {
+                    assert.equal(res.status, 401);
                 },
                 "returns a body with 'Not Authorized'": function (res) {
                     assert.equal(res.body.error, 'Not Authorized');
@@ -437,8 +457,8 @@ vows.describe('Journey').addBatch({
                 topic: function () {
                     return get('/scoped_auth/secure');
                 },
-                "returns a 403": function (res) {
-                    assert.equal(res.status, 403);
+                "returns a 401": function (res) {
+                    assert.equal(res.status, 401);
                 },
                 "returns a body with 'Not Authorized'": function (res) {
                     assert.equal(res.body.error, 'Not Authorized');
