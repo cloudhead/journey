@@ -4,7 +4,14 @@
   "url"           : "http://cloudhead.io/journey",
   "keywords"      : ["http", "router", "json"],
   "author"        : "Alexis Sellier <self@cloudhead.net>",
-  "contributors"  : [],
+  "contributors"  : [
+    {"name": "Philippe Guilbault", "email": "pĥilippe_guilbault@gmail.com", "url":"http://newbiverse.com"},
+    {"name": "Coen Hyde", "email": "coen.hyde@gmail.com", "url":"http://coenhyde.com"},
+    {"name": "Ben Chatelain", "email": "ben@sopods.com", "url":"http://sopods.com"},
+    {"name": "Maciej Małecki", "email": "me@mmalecki.com", "url":"http://mmalecki.com"},
+    {"name": "Iván Loire", "email": "ivan@iloire.com", "url":"http://www.iloire.com"},
+    {"name": "Charlie Robbins", "email": "charlie@nodejitsu.com", "url":"http://blog.nodejitsu.com"}
+  ],
   "licenses"      : ["Apache 2.0"],
   "dependencies"  : [],
   "devDependencies": {
@@ -15,7 +22,7 @@
     "test"        : "./node_modules/vows/bin/vows"
   },
   "main"          : "./lib/journey",
-  "version"       : "0.4.0-pre-3",
+  "version"       : "0.4.1",
   "directories"   : { "test": "./test" },
   "engines"       : { "node": "> 0.2.6" }
 }
